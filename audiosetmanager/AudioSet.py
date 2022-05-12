@@ -4,12 +4,12 @@ import os
 import pydub
 import numpy as np
 from pathlib import Path
-import constants
+import audiosetmanager.constants
 import re
 import csv
 
 class AudioSet:
-    def __init__(self, csv, dir="Dataset/", ydl_opts = {'format': 'bestaudio'}, strong=False):
+    def __init__(self, csv=audiosetmanager.constants.DEF_CSV, dir=os.path.expanduser('~')+"\\AudioSetData", ydl_opts = {'format': 'bestaudio'}, strong=False):
         self.csv = csv
         self.dir = dir
         self.ydl_opts = ydl_opts
@@ -41,27 +41,27 @@ class AudioSet:
 
         annot = self.df[(self.df["YTID"].str.contains(file, na=False))]
 
-        start_time =  int(annot['start_seconds']) * constants.MILLISECONDS
-        end_time = int(annot['end_seconds'])* constants.MILLISECONDS
+        start_time =  int(annot['start_seconds']) * audiosetmanager.constants.MILLISECONDS
+        end_time = int(annot['end_seconds'])* audiosetmanager.constants.MILLISECONDS
 
         audio = sound_file[start_time : end_time]
         audio.export(f'{self.dir}\\Split\\{file}.wav', format="wav")
 
-    def split_by_silence(self, wav, theta=-35):
+    def split_by_silence(self, wav, len = 500, theta=-35):
         sound_file = pydub.AudioSegment.from_wav(wav)
 
         file = os.path.basename(wav).replace(".wav","")
 
         annot = self.df[(self.df["YTID"].str.contains(file, na=False))]
 
-        start_time =  int(annot['start_seconds']) * constants.MILLISECONDS
-        end_time = int(annot['end_seconds'])* constants.MILLISECONDS
+        start_time =  int(annot['start_seconds']) * audiosetmanager.constants.MILLISECONDS
+        end_time = int(annot['end_seconds'])* audiosetmanager.constants.MILLISECONDS
 
         audio = sound_file[start_time : end_time]
 
         chunks = pydub.silence.split_on_silence(
             audio,
-            min_silence_len = 500,
+            min_silence_len = len,
             silence_thresh = theta
         )
 
@@ -84,7 +84,7 @@ class AudioSet:
         myaudio =  pydub.AudioSegment.from_file(wav , "wav")
         file = os.path.basename(wav).replace(".wav","")
 
-        chunk_length_ms = seconds*constants.MILLISECONDS
+        chunk_length_ms = seconds*audiosetmanager.constants.MILLISECONDS
         chunks =  pydub.utils.make_chunks(myaudio, chunk_length_ms)
 
         for i, chunk in enumerate(chunks):

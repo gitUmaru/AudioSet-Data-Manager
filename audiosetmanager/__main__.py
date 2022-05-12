@@ -5,7 +5,6 @@ import glob
 def main():
 
     DIR = "Speaking_Dataset"
-    CSV = "AudioSet Data\\balanced_train_segments.csv"
 
     config = {
         'format': 'bestaudio/best',
@@ -22,7 +21,7 @@ def main():
         'outtmpl': 'Speaking_Dataset\\Full\\%(id)s.%(ext)s'
     }
 
-    aud = AudioSet.AudioSet(csv=CSV, dir=DIR, ydl_opts = config)
+    aud = AudioSet.AudioSet()
     print(aud.df.head())
     aud.filter(id="/m/05zppz")
     print("\n\n\n\n")
