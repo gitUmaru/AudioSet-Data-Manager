@@ -6,27 +6,23 @@ import numpy as np
 from pathlib import Path
 import constants
 import re
+import csv
 
 class AudioSet:
-    def __init__(self, csv, dir, ydl_opts = {'format': 'bestaudio'}):
+    def __init__(self, csv, dir="Dataset/", ydl_opts = {'format': 'bestaudio'}, strong=False):
         self.csv = csv
         self.dir = dir
         self.ydl_opts = ydl_opts
+        self.strong = strong
         self.df = self.make_new()
 
     def make_new(self):
-        rows = []
-        frame_header = ["positive_labels", "end_seconds", "start_seconds", "YTID", ""]
-        with open(self.csv, 'r') as f_input:
-            for row in f_input:
-                cols = [col[::-1] for col in row[::-1][2:].split(' ') if len(col)]
-                rows.append(cols[:4] + [' '.join(cols[4:][::-1])])
 
-        df = pd.DataFrame(rows, columns=frame_header)
-        df.drop(df.columns[len(df.columns)-1], axis=1, inplace=True)
-        df = df[df.columns[::-1]]
-        df['start_seconds'] = df['start_seconds'].replace(',','',regex=True).astype(float)
-        df['end_seconds'] = df['end_seconds'].replace(',','',regex=True).astype(float)
+        if(self.strong):
+            df = pd.read_csv(self.csv, sep='\t')
+
+        df = pd.read_csv(self.csv, sep=',\s+', engine='python' ,quoting=csv.QUOTE_ALL, skiprows=2)
+        df = df.rename(columns={ df.columns[0]: 'YTID'})
         self.df = df
 
         return df
@@ -38,7 +34,20 @@ class AudioSet:
 
         return self.df
 
-    def splice_audio(self, wav, theta=-35):
+    def split(self, wav):
+        sound_file = pydub.AudioSegment.from_wav(wav)
+
+        file = os.path.basename(wav).replace(".wav","")
+
+        annot = self.df[(self.df["YTID"].str.contains(file, na=False))]
+
+        start_time =  int(annot['start_seconds']) * constants.MILLISECONDS
+        end_time = int(annot['end_seconds'])* constants.MILLISECONDS
+
+        audio = sound_file[start_time : end_time]
+        audio.export(f'{self.dir}\\Split\\{file}.wav', format="wav")
+
+    def split_by_silence(self, wav, theta=-35):
         sound_file = pydub.AudioSegment.from_wav(wav)
 
         file = os.path.basename(wav).replace(".wav","")
@@ -64,7 +73,7 @@ class AudioSet:
             # Normalize the entire chunk.
             normalized_chunk = self.__match_target_amplitude__(audio_chunk, -20.0)
 
-            normalized_chunk.export(f'{self.dir}\\Clips\\{file}_{i}.wav', format="wav")
+            normalized_chunk.export(f'{self.dir}\\Silence_Split\\{file}_{i}.wav', format="wav")
 
     def __match_target_amplitude__(self, aChunk, target_dBFS):
         ''' Private function to normalize given audio chunk '''
@@ -79,9 +88,10 @@ class AudioSet:
         chunks =  pydub.utils.make_chunks(myaudio, chunk_length_ms)
 
         for i, chunk in enumerate(chunks):
-            chunk.export(f"{self.dir}\\1\\{file}_{i}.wav", format="wav")
+            chunk.export(f"{self.dir}\\Chunks_{seconds}_Seconds\\{file}_{i}.wav", format="wav")
 
-    def download_full_vids(self):
+    def download(self):
+        ''' Download all rows in self.df according to self.ydl_opts '''
         with YoutubeDL(self.ydl_opts) as ydl:
             for index, row in self.df.iterrows():
                 print(row["YTID"])
