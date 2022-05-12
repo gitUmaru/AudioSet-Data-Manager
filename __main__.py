@@ -5,6 +5,7 @@ import glob
 def main():
 
     DIR = "Speaking_Dataset"
+    CSV = "AudioSet Data\\balanced_train_segments.csv"
 
     config = {
         'format': 'bestaudio/best',
@@ -21,15 +22,16 @@ def main():
         'outtmpl': 'Speaking_Dataset\\Full\\%(id)s.%(ext)s'
     }
 
-    aud = AudioSet.AudioSet(csv="AudioSet Data\\balanced_train_segments.csv", dir=DIR, ydl_opts = config)
-    print(aud.df.head(100))
+    aud = AudioSet.AudioSet(csv=CSV, dir=DIR, ydl_opts = config)
+    print(aud.df.head())
     aud.filter(id="/m/05zppz")
-    print(aud.df.size)
-
-    aud.download_full_vids()
-
-    for file in list(glob.glob(f'{DIR}}\\Full\\*.wav')):
-        aud.splice_audio(file)
+    print("\n\n\n\n")
+    print(aud.df.head(5))
+    #
+    # aud.download()
+    #
+    # for file in list(glob.glob(f'{DIR}}\\Full\\*.wav')):
+    #     aud.split_by_silence(file)
 
 
 
