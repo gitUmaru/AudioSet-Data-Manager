@@ -1,2 +1,4 @@
 Snoring_Dataset/*
 audiosetmanager/__pycache__/
+dist/*
+audioset_manager.egg-info/*

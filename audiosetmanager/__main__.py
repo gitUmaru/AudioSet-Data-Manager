@@ -4,7 +4,7 @@ import glob
 
 def main():
 
-    DIR = "Speaking_Dataset"
+    DIR = "Snoring_Dataset"
 
     config = {
         'format': 'bestaudio/best',
@@ -21,16 +21,16 @@ def main():
         'outtmpl': 'Speaking_Dataset\\Full\\%(id)s.%(ext)s'
     }
 
-    aud = AudioSet.AudioSet()
+    aud = AudioSet.AudioSet(dir=DIR)
     print(aud.df.head())
-    aud.filter(id="/m/05zppz")
-    print("\n\n\n\n")
-    print(aud.df.head(5))
+    # aud.filter(id="/m/05zppz")
+    # print("\n\n\n\n")
+    # print(aud.df.head(5))
     #
     # aud.download()
     #
-    # for file in list(glob.glob(f'{DIR}}\\Full\\*.wav')):
-    #     aud.split_by_silence(file)
+    for file in list(glob.glob('Snoring_Dataset\\Clips\\further splice\\*.wav')):
+        aud.chunkify(wav=file, seconds=1)
 
 
 
